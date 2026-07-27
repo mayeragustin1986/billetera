@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Eye, EyeOff, ShieldCheck, Wallet } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AuthPage() {
@@ -53,6 +53,7 @@ export default function AuthPage() {
               <input className="field pr-12" type={showPassword ? "text" : "password"} required minLength={mode === "register" ? 8 : 6} maxLength="72" placeholder="Contraseña" autoComplete={mode === "login" ? "current-password" : "new-password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white" aria-label="Mostrar contraseña">{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button>
             </div>
+            {mode === "login" && <div className="text-right"><Link to="/recuperar" className="text-sm font-medium text-emerald-300 hover:text-emerald-200">Olvidé mi contraseña</Link></div>}
             {error && <p className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">{error}</p>}
             {message && <p className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300">{message}</p>}
             <button className="btn-primary w-full" disabled={loading}>{loading ? "Procesando…" : mode === "login" ? "Ingresar" : "Crear cuenta"} <ArrowRight size={18} /></button>

@@ -5,6 +5,8 @@ import AuthPage from "../pages/AuthPage";
 import DashboardPage from "../pages/DashboardPage";
 import TransactionsPage from "../pages/TransactionsPage";
 import CategoriesPage from "../pages/CategoriesPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 
 function ProtectedRoute({ children }) {
   const { session, loading } = useAuth();
@@ -24,6 +26,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/recuperar" element={<ForgotPasswordPage />} />
+      <Route path="/restablecer" element={<ResetPasswordPage />} />
       <Route
         element={
           <ProtectedRoute>

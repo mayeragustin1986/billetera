@@ -34,6 +34,11 @@ export function AuthProvider({ children }) {
           password,
           options: { data: { full_name: fullName.trim() } },
         }),
+      requestPasswordReset: (email) =>
+        supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/restablecer`,
+        }),
+      updatePassword: (password) => supabase.auth.updateUser({ password }),
       signOut: () => supabase.auth.signOut(),
     }),
     [session, loading],

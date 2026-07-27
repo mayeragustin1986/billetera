@@ -1,34 +1,61 @@
 import { useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import TransactionForm from "../components/TransactionForm";
 import { useTransactions } from "../hooks/useTransactions";
+import { useCategories } from "../hooks/useCategories";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 
 export default function TransactionsPage() {
   const { data = [], isLoading, error, create, update, remove } = useTransactions();
+  const { data: categories = [] } = useCategories();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const filtered = useMemo(() => data.filter((item) => {
     const matchesType = type === "all" || item.type === type;
+    const matchesCategory = category === "all" || item.category === category;
+    const matchesFrom = !dateFrom || item.occurred_at >= dateFrom;
+    const matchesTo = !dateTo || item.occurred_at <= dateTo;
     const term = search.toLowerCase();
-    return matchesType && (`${item.description} ${item.category}`).toLowerCase().includes(term);
-  }), [data, search, type]);
+    return matchesType && matchesCategory && matchesFrom && matchesTo
+      && (`${item.description} ${item.category}`).toLowerCase().includes(term);
+  }), [category, data, dateFrom, dateTo, search, type]);
 
   const save = async (values) => {
-    if (editing) await update.mutateAsync({ id: editing.id, ...values });
-    else await create.mutateAsync(values);
-    setEditing(null); setFormOpen(false);
+    setActionError("");
+    try {
+      if (editing) await update.mutateAsync({ id: editing.id, ...values });
+      else await create.mutateAsync(values);
+      setEditing(null); setFormOpen(false);
+    } catch (mutationError) {
+      setActionError(mutationError.message);
+      throw mutationError;
+    }
   };
 
-  const deleteItem = (id) => {
-    if (window.confirm("¿Eliminar este movimiento?")) remove.mutate(id);
+  const deleteItem = async (id) => {
+    if (!window.confirm("¿Eliminar este movimiento?")) return;
+    setActionError("");
+    try {
+      await remove.mutateAsync(id);
+    } catch (mutationError) {
+      setActionError(mutationError.message);
+    }
   };
+
+  const clearFilters = () => {
+    setSearch(""); setType("all"); setCategory("all"); setDateFrom(""); setDateTo("");
+  };
+  const hasFilters = search || type !== "all" || category !== "all" || dateFrom || dateTo;
 
   return (
     <>
@@ -37,12 +64,18 @@ export default function TransactionsPage() {
         <button onClick={() => { setEditing(null); setFormOpen(true); }} className="btn-primary"><Plus size={19} /> Nuevo movimiento</button>
       </div>
       <div className="panel mt-8 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="relative flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={19} /><input className="field pl-11" placeholder="Buscar por descripción o categoría" value={search} onChange={(e) => setSearch(e.target.value)} /></label>
-          <select className="field sm:w-48" value={type} onChange={(e) => setType(e.target.value)}><option value="all">Todos</option><option value="income">Ingresos</option><option value="expense">Gastos</option></select>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_170px_190px_160px_160px_auto]">
+          <label className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={19} /><input className="field pl-11" placeholder="Buscar movimientos" value={search} onChange={(e) => setSearch(e.target.value)} /></label>
+          <select className="field" value={type} onChange={(e) => setType(e.target.value)}><option value="all">Todos los tipos</option><option value="income">Ingresos</option><option value="expense">Gastos</option></select>
+          <select className="field" value={category} onChange={(e) => setCategory(e.target.value)}><option value="all">Todas las categorías</option>{categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select>
+          <input className="field" type="date" aria-label="Desde" title="Desde" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} />
+          <input className="field" type="date" aria-label="Hasta" title="Hasta" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} />
+          <button onClick={clearFilters} disabled={!hasFilters} className="grid min-h-12 place-items-center rounded-xl border border-white/10 px-4 text-slate-400 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30" aria-label="Limpiar filtros" title="Limpiar filtros"><RotateCcw size={19} /></button>
         </div>
+        <p className="mt-3 text-xs text-slate-500">{filtered.length} de {data.length} movimientos</p>
       </div>
       {error && <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">No se pudo acceder a la tabla de movimientos.</p>}
+      {actionError && <p className="mt-6 rounded-xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm text-rose-200">{actionError}</p>}
       <div className="panel mt-6 overflow-hidden">
         {isLoading ? <p className="p-12 text-center text-slate-500">Cargando…</p> : filtered.length ? (
           <div className="divide-y divide-white/5">
