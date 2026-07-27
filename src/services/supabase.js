@@ -15,3 +15,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: "billetera-auth",
   },
 });
+
+export const TABLES = Object.freeze({
+  profiles: "profiles",
+  categories: "categories",
+  transactions: "transactions",
+});

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "../services/supabase";
+import { supabase, TABLES } from "../services/supabase";
 
 export function useCategories() {
   const { user } = useAuth();
@@ -12,7 +12,8 @@ export function useCategories() {
     enabled: Boolean(user),
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("categories")
+        .schema("public")
+        .from(TABLES.categories)
         .select("*")
         .order("name");
       if (error) throw error;
@@ -24,7 +25,8 @@ export function useCategories() {
   const create = useMutation({
     mutationFn: async (values) => {
       const { data, error } = await supabase
-        .from("categories")
+        .schema("public")
+        .from(TABLES.categories)
         .insert({ ...values, user_id: user.id })
         .select()
         .single();
@@ -36,7 +38,8 @@ export function useCategories() {
   const update = useMutation({
     mutationFn: async ({ id, ...values }) => {
       const { data, error } = await supabase
-        .from("categories")
+        .schema("public")
+        .from(TABLES.categories)
         .update(values)
         .eq("id", id)
         .select()
@@ -48,7 +51,7 @@ export function useCategories() {
   });
   const remove = useMutation({
     mutationFn: async (id) => {
-      const { error } = await supabase.from("categories").delete().eq("id", id);
+      const { error } = await supabase.schema("public").from(TABLES.categories).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: refresh,

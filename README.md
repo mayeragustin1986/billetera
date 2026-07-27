@@ -13,7 +13,7 @@ Las variables requeridas están documentadas en `.env.example`.
 
 ## Base de datos
 
-Ejecutar en orden los archivos de `supabase/migrations` en el SQL Editor de Supabase. Las migraciones crean perfiles, categorías, movimientos, vencimientos, índices, triggers y políticas RLS.
+Para una instalación nueva o para reparar un proyecto sin tablas, ejecutar `supabase/migrations/202607270003_supabase_bootstrap.sql` en el SQL Editor de Supabase. El archivo es idempotente y crea o repara perfiles, categorías, movimientos, vencimientos, índices, triggers, permisos y políticas RLS.
 
 ## Comandos
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import TransactionForm from "../components/TransactionForm";
@@ -43,7 +43,7 @@ export default function TransactionsPage() {
   };
 
   const deleteItem = async (id) => {
-    if (!window.confirm("¿Eliminar este movimiento?")) return;
+    if (!window.confirm("¿Querés borrar esto?")) return;
     setActionError("");
     try {
       await remove.mutateAsync(id);
@@ -59,40 +59,39 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div><p className="text-sm text-emerald-300">Historial financiero</p><h1 className="mt-1 text-3xl font-bold">Movimientos</h1><p className="mt-2 text-slate-500">Gestioná todos tus ingresos y gastos.</p></div>
-        <button onClick={() => { setEditing(null); setFormOpen(true); }} className="btn-primary"><Plus size={19} /> Nuevo movimiento</button>
+      <div className="py-6 sm:py-10">
+        <p className="text-lg font-semibold text-[#8e8e93]">Todo en un lugar</p>
+        <h1 className="mt-2 text-5xl font-bold tracking-[-.04em] sm:text-7xl">Mi plata</h1>
       </div>
-      <div className="panel mt-8 p-4">
+      <div className="panel mt-8 p-5 sm:p-7">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_170px_190px_160px_160px_auto]">
-          <label className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={19} /><input className="field pl-11" placeholder="Buscar movimientos" value={search} onChange={(e) => setSearch(e.target.value)} /></label>
-          <select className="field" value={type} onChange={(e) => setType(e.target.value)}><option value="all">Todos los tipos</option><option value="income">Ingresos</option><option value="expense">Gastos</option></select>
-          <select className="field" value={category} onChange={(e) => setCategory(e.target.value)}><option value="all">Todas las categorías</option>{categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select>
+          <label className="relative"><Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[#8e8e93]" size={21} /><input className="field pl-13" placeholder="Buscar" value={search} onChange={(e) => setSearch(e.target.value)} /></label>
+          <select className="field" aria-label="Cobré o pagué" value={type} onChange={(e) => setType(e.target.value)}><option value="all">Todo</option><option value="income">Cobré</option><option value="expense">Pagué</option></select>
+          <select className="field" aria-label="Para qué" value={category} onChange={(e) => setCategory(e.target.value)}><option value="all">Para cualquier cosa</option>{categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select>
           <input className="field" type="date" aria-label="Desde" title="Desde" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} />
           <input className="field" type="date" aria-label="Hasta" title="Hasta" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} />
-          <button onClick={clearFilters} disabled={!hasFilters} className="grid min-h-12 place-items-center rounded-xl border border-white/10 px-4 text-slate-400 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30" aria-label="Limpiar filtros" title="Limpiar filtros"><RotateCcw size={19} /></button>
+          <button onClick={clearFilters} disabled={!hasFilters} className="grid min-h-16 place-items-center rounded-2xl border border-white/10 px-4 text-[#8e8e93] hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30" aria-label="Limpiar" title="Limpiar"><RotateCcw size={21} /></button>
         </div>
-        <p className="mt-3 text-xs text-slate-500">{filtered.length} de {data.length} movimientos</p>
       </div>
-      {error && <p className="mt-6 rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">No se pudo acceder a la tabla de movimientos.</p>}
-      {actionError && <p className="mt-6 rounded-xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm text-rose-200">{actionError}</p>}
-      <div className="panel mt-6 overflow-hidden">
-        {isLoading ? <p className="p-12 text-center text-slate-500">Cargando…</p> : filtered.length ? (
-          <div className="divide-y divide-white/5">
+      {error && <p className="mt-6 rounded-2xl bg-[#ff9f0a]/10 p-5 text-lg text-[#ffb340]">No pudimos mostrar tu plata. Probá de nuevo.</p>}
+      {actionError && <p className="mt-6 rounded-2xl bg-[#ff453a]/10 p-5 text-lg text-[#ff6961]">No pudimos hacer eso. Probá otra vez.</p>}
+      <div className="panel mt-8 overflow-hidden px-5 sm:px-7">
+        {isLoading ? <p className="p-14 text-center text-lg text-[#8e8e93]">Un momento…</p> : filtered.length ? (
+          <div className="divide-y divide-white/[0.07]">
             {filtered.map((item) => {
               const income = item.type === "income";
-              return <div key={item.id} className="group flex items-center gap-3 p-4 sm:px-6">
-                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${income ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>{income ? <ArrowUpRight /> : <ArrowDownRight />}</span>
-                <div className="min-w-0 flex-1"><p className="truncate font-medium">{item.description}</p><p className="text-xs text-slate-500">{item.category} · {format(new Date(`${item.occurred_at}T12:00:00`), "d 'de' MMMM, yyyy", { locale: es })}</p></div>
-                <p className={`hidden font-semibold sm:block ${income ? "text-emerald-300" : "text-slate-100"}`}>{income ? "+" : "−"}{money.format(item.amount)}</p>
+              return <div key={item.id} className="group flex items-center gap-4 py-6">
+                <span className={`grid h-13 w-13 shrink-0 place-items-center rounded-full ${income ? "bg-[#30d158]/15 text-[#30d158]" : "bg-white/[0.06] text-white"}`}>{income ? <ArrowDown /> : <ArrowUp />}</span>
+                <div className="min-w-0 flex-1"><p className="truncate text-lg font-semibold">{item.description}</p><p className="mt-1 text-sm text-[#8e8e93]">{item.category} · {format(new Date(`${item.occurred_at}T12:00:00`), "d MMM yyyy", { locale: es })}</p><p className={`mt-2 font-bold sm:hidden ${income ? "text-[#30d158]" : "text-white"}`}>{income ? "+" : "−"}{money.format(item.amount)}</p></div>
+                <p className={`hidden text-lg font-bold sm:block ${income ? "text-[#30d158]" : "text-white"}`}>{income ? "+" : "−"}{money.format(item.amount)}</p>
                 <div className="flex">
-                  <button onClick={() => { setEditing(item); setFormOpen(true); }} className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white" aria-label="Editar"><Pencil size={17} /></button>
-                  <button onClick={() => deleteItem(item.id)} className="rounded-lg p-2 text-slate-500 hover:bg-red-400/10 hover:text-red-300" aria-label="Eliminar"><Trash2 size={17} /></button>
+                  <button onClick={() => { setEditing(item); setFormOpen(true); }} className="grid h-12 w-12 place-items-center rounded-full text-[#8e8e93] hover:bg-white/5 hover:text-white" aria-label="Cambiar"><Pencil size={20} /></button>
+                  <button onClick={() => deleteItem(item.id)} className="grid h-12 w-12 place-items-center rounded-full text-[#8e8e93] hover:bg-[#ff453a]/10 hover:text-[#ff6961]" aria-label="Borrar"><Trash2 size={20} /></button>
                 </div>
               </div>;
             })}
           </div>
-        ) : <p className="p-12 text-center text-slate-500">No hay movimientos que coincidan.</p>}
+        ) : <div className="p-14 text-center"><p className="text-xl font-semibold">No encontramos nada.</p><p className="mt-2 text-[#8e8e93]">Probá cambiando la búsqueda.</p></div>}
       </div>
       {formOpen && <TransactionForm transaction={editing} onSubmit={save} onClose={() => { setFormOpen(false); setEditing(null); }} saving={create.isPending || update.isPending} />}
     </>
