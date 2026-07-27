@@ -1,16 +1,23 @@
-# React + Vite
+# Billetera
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplicación de finanzas personales construida con React, Vite, Tailwind CSS y Supabase.
 
-Currently, two official plugins are available:
+## Inicio
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Las variables requeridas están documentadas en `.env.example`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Base de datos
 
-## Expanding the Oxlint configuration
+Ejecutar en orden los archivos de `supabase/migrations` en el SQL Editor de Supabase. Las migraciones crean perfiles, categorías, movimientos, vencimientos, índices, triggers y políticas RLS.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Comandos
+
+- `npm run dev`: servidor de desarrollo
+- `npm run build`: build de producción
+- `npm run lint`: análisis estático
+- `npm run preview`: previsualización del build
