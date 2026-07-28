@@ -1,10 +1,12 @@
 import { ArrowLeft, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCategories } from "../hooks/useCategories";
+import { useAccounts, useFinancialSpaces } from "../hooks/useFinancialEntities";
 
 const initial = {
   type: "expense", amount: "", description: "", category: "Otros",
   occurred_at: new Date().toISOString().slice(0, 10), due_date: "", status: "paid",
+  space_id: "", account_id: "",
 };
 
 export default function TransactionForm({ transaction, onSubmit, onClose, saving, initialType }) {
@@ -12,15 +14,24 @@ export default function TransactionForm({ transaction, onSubmit, onClose, saving
   const [error, setError] = useState("");
   const { data: savedGroups = [] } = useCategories();
   const groups = savedGroups.length ? savedGroups.map((item) => item.name) : ["Otros"];
+  const { data: spaces = [] } = useFinancialSpaces();
+  const { data: accounts = [] } = useAccounts();
+  const activeSpaces = spaces.filter((item) => item.active || item.id === transaction?.space_id);
+  const activeAccounts = accounts.filter((item) => item.active || item.id === transaction?.account_id);
 
   useEffect(() => {
     setForm(transaction ? {
       ...initial, ...transaction, amount: String(transaction.amount),
       occurred_at: transaction.occurred_at.slice(0, 10),
       due_date: transaction.due_date?.slice(0, 10) || "",
-    } : { ...initial, type: initialType || "expense" });
+    } : {
+      ...initial,
+      type: initialType || "expense",
+      space_id: spaces.find((item) => item.active)?.id || "",
+      account_id: accounts.find((item) => item.active)?.id || "",
+    });
     setError("");
-  }, [initialType, transaction]);
+  }, [accounts, initialType, spaces, transaction]);
 
   const submit = (event) => {
     event.preventDefault();
@@ -28,6 +39,8 @@ export default function TransactionForm({ transaction, onSubmit, onClose, saving
     if (!Number.isFinite(amount) || amount <= 0) return setError("Escribí un importe mayor a cero.");
     if (form.description.trim().length < 2) return setError("Contanos brevemente de qué se trata.");
     if (!form.category) return setError("Elegí para qué fue.");
+    if (!form.space_id) return setError("Elegí un espacio.");
+    if (!form.account_id) return setError("Elegí una cuenta.");
     if (form.status === "pending" && !form.due_date) return setError("Elegí cuándo vence.");
     setError("");
     onSubmit({ ...form, amount, description: form.description.trim(), due_date: form.due_date || null })
@@ -50,6 +63,8 @@ export default function TransactionForm({ transaction, onSubmit, onClose, saving
           <label className="block"><span className="mb-2 block text-lg font-semibold">¿Cuánto?</span><input autoFocus className="field text-3xl font-bold" type="number" inputMode="decimal" min="0.01" step="0.01" required placeholder="$ 0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></label>
           <label className="block"><span className="mb-2 block text-lg font-semibold">¿Qué fue?</span><input className="field" required maxLength="120" placeholder="Ej: Supermercado" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
           <label className="block"><span className="mb-2 block text-lg font-semibold">¿Para qué?</span><select className="field" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>{groups.map((group) => <option key={group}>{group}</option>)}</select></label>
+          <label className="block"><span className="mb-2 block text-lg font-semibold">Espacio</span><select className="field" required value={form.space_id} onChange={(e) => setForm({ ...form, space_id: e.target.value })}><option value="">Elegí un espacio</option>{activeSpaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label className="block"><span className="mb-2 block text-lg font-semibold">Cuenta</span><select className="field" required value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })}><option value="">Elegí una cuenta</option>{activeAccounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label className="block"><span className="mb-2 block text-lg font-semibold">¿Cuándo?</span><input className="field" type="date" required value={form.occurred_at} onChange={(e) => setForm({ ...form, occurred_at: e.target.value })} /></label>
           {!isIncome && <div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => setForm({ ...form, status: "paid", due_date: "" })} className={`min-h-16 rounded-2xl border text-lg font-semibold ${form.status === "paid" ? "border-white bg-white text-black" : "border-white/10 text-[#8e8e93]"}`}>Ya pagué</button><button type="button" onClick={() => setForm({ ...form, status: "pending" })} className={`min-h-16 rounded-2xl border text-lg font-semibold ${form.status === "pending" ? "border-[#ff9f0a] bg-[#ff9f0a] text-black" : "border-white/10 text-[#8e8e93]"}`}>Lo debo</button></div>}
           {form.status === "pending" && <label className="block"><span className="mb-2 block text-lg font-semibold">¿Cuándo vence?</span><input className="field" type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></label>}

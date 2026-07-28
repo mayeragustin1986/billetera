@@ -20,4 +20,6 @@ export const TABLES = Object.freeze({
   profiles: "profiles",
   categories: "categories",
   transactions: "transactions",
+  financialSpaces: "financial_spaces",
+  accounts: "accounts",
 });

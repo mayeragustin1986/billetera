@@ -5,12 +5,15 @@ import { es } from "date-fns/locale";
 import TransactionForm from "../components/TransactionForm";
 import { useTransactions } from "../hooks/useTransactions";
 import { useCategories } from "../hooks/useCategories";
+import { useAccounts, useFinancialSpaces } from "../hooks/useFinancialEntities";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 
 export default function TransactionsPage() {
   const { data = [], isLoading, error, create, update, remove } = useTransactions();
   const { data: categories = [] } = useCategories();
+  const { data: spaces = [] } = useFinancialSpaces();
+  const { data: accounts = [] } = useAccounts();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
@@ -18,6 +21,8 @@ export default function TransactionsPage() {
   const [category, setCategory] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [spaceId, setSpaceId] = useState("all");
+  const [accountId, setAccountId] = useState("all");
   const [actionError, setActionError] = useState("");
 
   const filtered = useMemo(() => data.filter((item) => {
@@ -25,10 +30,12 @@ export default function TransactionsPage() {
     const matchesCategory = category === "all" || item.category === category;
     const matchesFrom = !dateFrom || item.occurred_at >= dateFrom;
     const matchesTo = !dateTo || item.occurred_at <= dateTo;
+    const matchesSpace = spaceId === "all" || item.space_id === spaceId;
+    const matchesAccount = accountId === "all" || item.account_id === accountId;
     const term = search.toLowerCase();
-    return matchesType && matchesCategory && matchesFrom && matchesTo
+    return matchesType && matchesCategory && matchesFrom && matchesTo && matchesSpace && matchesAccount
       && (`${item.description} ${item.category}`).toLowerCase().includes(term);
-  }), [category, data, dateFrom, dateTo, search, type]);
+  }), [accountId, category, data, dateFrom, dateTo, search, spaceId, type]);
 
   const save = async (values) => {
     setActionError("");
@@ -53,9 +60,9 @@ export default function TransactionsPage() {
   };
 
   const clearFilters = () => {
-    setSearch(""); setType("all"); setCategory("all"); setDateFrom(""); setDateTo("");
+    setSearch(""); setType("all"); setCategory("all"); setDateFrom(""); setDateTo(""); setSpaceId("all"); setAccountId("all");
   };
-  const hasFilters = search || type !== "all" || category !== "all" || dateFrom || dateTo;
+  const hasFilters = search || type !== "all" || category !== "all" || dateFrom || dateTo || spaceId !== "all" || accountId !== "all";
 
   return (
     <>
@@ -64,10 +71,12 @@ export default function TransactionsPage() {
         <h1 className="mt-2 text-5xl font-bold tracking-[-.04em] sm:text-7xl">Mi plata</h1>
       </div>
       <div className="panel mt-8 p-5 sm:p-7">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_170px_190px_160px_160px_auto]">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="relative"><Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[#8e8e93]" size={21} /><input className="field pl-13" placeholder="Buscar" value={search} onChange={(e) => setSearch(e.target.value)} /></label>
           <select className="field" aria-label="Cobré o pagué" value={type} onChange={(e) => setType(e.target.value)}><option value="all">Todo</option><option value="income">Cobré</option><option value="expense">Pagué</option></select>
           <select className="field" aria-label="Para qué" value={category} onChange={(e) => setCategory(e.target.value)}><option value="all">Para cualquier cosa</option>{categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select>
+          <select className="field" value={spaceId} onChange={(e) => setSpaceId(e.target.value)}><option value="all">Todos los espacios</option>{spaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+          <select className="field" value={accountId} onChange={(e) => setAccountId(e.target.value)}><option value="all">Todas las cuentas</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
           <input className="field" type="date" aria-label="Desde" title="Desde" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} />
           <input className="field" type="date" aria-label="Hasta" title="Hasta" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} />
           <button onClick={clearFilters} disabled={!hasFilters} className="grid min-h-16 place-items-center rounded-2xl border border-white/10 px-4 text-[#8e8e93] hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30" aria-label="Limpiar" title="Limpiar"><RotateCcw size={21} /></button>
