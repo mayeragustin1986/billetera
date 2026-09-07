@@ -5,6 +5,7 @@ import { es } from "date-fns/locale";
 import { useTransactions } from "../hooks/useTransactions";
 import { useAccounts, useFinancialSpaces } from "../hooks/useFinancialEntities";
 import TransactionForm from "../components/TransactionForm";
+import { filterPaymentAgenda } from "../utils/paymentAgenda";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 const empty = () => ({ income: 0, expense: 0 });
@@ -34,7 +35,7 @@ export default function DashboardPage() {
   }), [accounts, data, spaceId]);
   const upcoming = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return filtered.filter((item) => item.status === "pending" && item.due_date >= today).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 3);
+    return filterPaymentAgenda(filtered).filter((item) => item.due_date >= today).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 3);
   }, [filtered]);
   const save = async (values) => { await create.mutateAsync(values); setFormType(null); };
   const namedSpace = (name) => spaces.find((item) => item.name.toLowerCase() === name.toLowerCase());
