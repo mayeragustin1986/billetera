@@ -1,10 +1,11 @@
-import { Clock3, House, LogOut, Settings, Shapes, Wallet } from "lucide-react";
+import { CalendarClock, Clock3, House, LogOut, Settings, Shapes, Wallet } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const nav = [
   { to: "/", label: "Inicio", icon: House, end: true },
   { to: "/movimientos", label: "Mi plata", icon: Clock3 },
+  { to: "/agenda-pagos", label: "Agenda", icon: CalendarClock },
   { to: "/categorias", label: "Ordenar", icon: Shapes },
   { to: "/configuracion", label: "Configurar", icon: Settings },
 ];
@@ -32,7 +33,7 @@ export default function AppLayout() {
         </button>
       </header>
       <main className="mx-auto max-w-6xl px-5 pb-12 pt-4 sm:px-8 sm:pt-10"><Outlet /></main>
-      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-[1.7rem] border border-white/10 bg-[#1c1c1e]/95 p-2 shadow-2xl backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-[1.7rem] border border-white/10 bg-[#1c1c1e]/95 p-2 shadow-2xl backdrop-blur-xl md:hidden">
         {nav.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => `flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold transition ${isActive ? "bg-white text-black" : "text-[#8e8e93]"}`}>
             <Icon size={22} /><span>{label}</span>

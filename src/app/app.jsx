@@ -8,6 +8,7 @@ import CategoriesPage from "../pages/CategoriesPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import SettingsPage from "../pages/SettingsPage";
+import PaymentAgendaPage from "../pages/PaymentAgendaPage";
 
 function ProtectedRoute({ children }) {
   const { session, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="/movimientos" element={<TransactionsPage />} />
+        <Route path="/agenda-pagos" element={<PaymentAgendaPage />} />
         <Route path="/categorias" element={<CategoriesPage />} />
         <Route path="/configuracion" element={<SettingsPage />} />
       </Route>
